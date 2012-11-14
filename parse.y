@@ -70,7 +70,7 @@ typedef struct {
 %token	FONTNAME STICKY GAP MOUSEBIND
 %token	AUTOGROUP BIND COMMAND IGNORE
 %token	YES NO BORDERWIDTH MOVEAMOUNT
-%token	COLOR SNAPDIST
+%token	COLOR RANDOM SNAPDIST
 %token	ACTIVEBORDER INACTIVEBORDER
 %token	GROUPBORDER UNGROUPBORDER
 %token	MENUBG MENUFG FONTCOLOR
@@ -120,6 +120,9 @@ main		: FONTNAME STRING		{
 		}
 		| MOVEAMOUNT NUMBER {
 			conf->mamount = $2;
+		}
+		| RANDOM NUMBER {
+			conf->random = $2;
 		}
 		| SNAPDIST NUMBER {
 			conf->snapdist = $2;
@@ -247,6 +250,7 @@ lookup(char *s)
 		{ "mousebind",		MOUSEBIND},
 		{ "moveamount",		MOVEAMOUNT},
 		{ "no",			NO},
+		{ "random", 		RANDOM},
 		{ "snapdist",		SNAPDIST},
 		{ "sticky",		STICKY},
 		{ "ungroupborder",	UNGROUPBORDER},
@@ -540,6 +544,7 @@ parse_config(const char *filename, struct conf *xconf)
 		xconf->bwidth = conf->bwidth;
 		xconf->mamount = conf->mamount;
 		xconf->snapdist = conf->snapdist;
+		xconf->random = conf->random;
 		xconf->gap = conf->gap;
 
 		while ((cmd = TAILQ_FIRST(&conf->cmdq)) != NULL) {
