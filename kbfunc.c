@@ -379,7 +379,7 @@ kbfunc_ssh(struct client_ctx *cc, union arg *arg)
 	(void)fclose(fp);
 
 	if ((mi = menu_filter(sc, &menuq, "ssh", NULL, CWM_MENU_DUMMY,
-	    search_match_exec, NULL)) != NULL) {
+	    search_match_text, NULL)) != NULL) {
 		if (mi->text[0] == '\0')
 			goto out;
 		l = snprintf(cmd, sizeof(cmd), "%s -e ssh %s", Conf.termpath,
