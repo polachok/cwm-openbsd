@@ -384,7 +384,7 @@ menu_draw(struct screen_ctx *sc, struct menu_ctx *mc, struct menu_q *menuq,
 		(void)snprintf(mc->dispstr, sizeof(mc->dispstr), "%s%s%s",
 		    mc->promptstr, mc->searchstr, PROMPT_ECHAR);
 		mc->width = font_width(sc, mc->dispstr, strlen(mc->dispstr));
-		mc->height = font_height(sc);
+		mc->height = font_height(sc) + 1;
 		mc->num = 1;
 	}
 
@@ -443,7 +443,7 @@ menu_draw(struct screen_ctx *sc, struct menu_ctx *mc, struct menu_q *menuq,
 
 	if (mc->hasprompt) {
 		font_draw(sc, mc->dispstr, strlen(mc->dispstr), sc->menuwin,
-		    0, font_ascent(sc) + 1);
+		    0, font_ascent(sc));
 		n = 1;
 	} else
 		n = 0;
@@ -464,7 +464,8 @@ menu_draw(struct screen_ctx *sc, struct menu_ctx *mc, struct menu_q *menuq,
 
 	if (mc->hasprompt && n > 1 && (mc->searchstr[0] != '\0'))
 		XFillRectangle(X_Dpy, sc->menuwin, sc->gc,
-		    0, font_height(sc), mc->width, font_height(sc));
+		    0, font_height(sc), mc->width,
+		    font_height(sc) + font_descent(sc));
 
 	if (mc->noresult)
 		XFillRectangle(X_Dpy, sc->menuwin, sc->gc,
@@ -479,11 +480,13 @@ menu_handle_move(XEvent *e, struct menu_ctx *mc, struct screen_ctx *sc)
 
 	if (mc->prev != -1)
 		XFillRectangle(X_Dpy, sc->menuwin, sc->gc, 0,
-		    font_height(sc) * mc->prev, mc->width, font_height(sc));
+		    font_height(sc) * mc->prev, mc->width,
+		    font_height(sc) + font_descent(sc));
 	if (mc->entry != -1) {
 		(void)xu_ptr_regrab(MENUGRABMASK, Cursor_normal);
 		XFillRectangle(X_Dpy, sc->menuwin, sc->gc, 0,
-		    font_height(sc) * mc->entry, mc->width, font_height(sc));
+		    font_height(sc) * mc->entry, mc->width,
+		    font_height(sc) + font_descent(sc));
 	} else
 		(void)xu_ptr_regrab(MENUGRABMASK, Cursor_default);
 }
