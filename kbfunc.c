@@ -497,3 +497,16 @@ kbfunc_restart(struct client_ctx *cc, union arg *arg)
 	(void)setsid();
 	(void)execvp(cwm_argv[0], cwm_argv);
 }
+
+void
+kbfunc_tile(struct client_ctx *cc, union arg *arg)
+{
+	switch (arg->i) {
+		case CWM_TILE_HORIZ:
+			tile_horiz(cc);
+			break;
+		case CWM_TILE_VERT:
+			tile_vert(cc);
+			break;
+	}
+}
