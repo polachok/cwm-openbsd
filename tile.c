@@ -49,6 +49,7 @@ tile_horiz(struct client_ctx *cc)
 		       	cc->geom.h + 2*cc->bwidth >= sc->work.h)
 		return;
 
+	cc->savegeom = cc->geom;
 	cc->flags &= ~CLIENT_HMAXIMIZED;
 	cc->geom.y = sc->work.y;
 	client_horizmaximize(cc);
@@ -62,6 +63,7 @@ tile_horiz(struct client_ctx *cc)
 		if (ci->flags & CLIENT_HIDDEN ||
 		    ci->flags & CLIENT_IGNORE || (ci == cc))
 			continue;
+		ci->savegeom = ci->geom;
 		ci->bwidth = Conf.bwidth;
 		ci->geom.y = sa->y + mh;
 		ci->geom.x = x;
@@ -101,6 +103,7 @@ tile_vert(struct client_ctx *cc)
 			cc->geom.w + 2*cc->bwidth >= sc->work.w)
 		return;
 
+	cc->savegeom = cc->geom;
 	cc->flags &= ~CLIENT_VMAXIMIZED;
 	cc->geom.x = sc->work.x;
 	client_vertmaximize(cc);
@@ -114,6 +117,7 @@ tile_vert(struct client_ctx *cc)
 		if (ci->flags & CLIENT_HIDDEN ||
 		    ci->flags & CLIENT_IGNORE || (ci == cc))
 			continue;
+		ci->savegeom = ci->geom;
 		ci->bwidth = Conf.bwidth;
 		ci->geom.y = y;
 		ci->geom.x = sa->x + mw;

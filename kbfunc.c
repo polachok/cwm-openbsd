@@ -510,3 +510,16 @@ kbfunc_tile(struct client_ctx *cc, union arg *arg)
 			break;
 	}
 }
+
+void
+kbfunc_undo(struct client_ctx *cc, union arg *arg)
+{
+	struct geom tmp;
+
+	if (!cc->savegeom.w || !cc->savegeom.h)
+		return;
+	tmp = cc->geom;
+	cc->geom = cc->savegeom;
+	cc->savegeom = tmp;
+	client_resize(cc, 1);
+}
