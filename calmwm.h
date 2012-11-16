@@ -80,6 +80,7 @@
 /* tile */
 #define CWM_TILE_HORIZ 		0x0001
 #define CWM_TILE_VERT 		0x0002
+#define CWM_TILE_UNTILE		0x0004
 
 #define KBTOGROUP(X) ((X) - 1)
 
@@ -195,6 +196,9 @@ struct group_ctx {
 	int			 hidden;
 	int			 nhidden;
 	int			 highstack;
+#define STATE_FLOATING           0
+#define STATE_TILING             1
+	int 			 state;
 };
 TAILQ_HEAD(group_ctx_q, group_ctx);
 
@@ -458,6 +462,7 @@ XftFont			*font_make(struct screen_ctx *, const char *);
 
 void 			 tile_horiz(struct client_ctx *cc);
 void 			 tile_vert(struct client_ctx *cc);
+void 			 tile_untile(struct client_ctx *cc);
 
 void			 xev_loop(void);
 
