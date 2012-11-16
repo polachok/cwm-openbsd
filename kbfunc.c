@@ -508,6 +508,9 @@ kbfunc_tile(struct client_ctx *cc, union arg *arg)
 		case CWM_TILE_VERT:
 			tile_vert(cc);
 			break;
+		case CWM_TILE_UNTILE:
+			tile_untile(cc);
+			break;
 	}
 }
 

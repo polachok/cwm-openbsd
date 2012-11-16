@@ -31,11 +31,14 @@ tile_horiz(struct client_ctx *cc)
 	struct screen_ctx 	*sc = cc->sc;
 	struct geom 		*sa = &sc->work;
 	int 			 i, n, mh, x, h, w;
+	int 			 pstate;
 
 	if (!gc)
 		return;
 	i = n = 0;
 
+	pstate = gc->state;
+	gc->state = STATE_TILING;
 	TAILQ_FOREACH(ci, &gc->clients, group_entry) {
 		if (ci->flags & CLIENT_HIDDEN ||
 		    ci->flags & CLIENT_IGNORE || (ci == cc))
@@ -49,10 +52,13 @@ tile_horiz(struct client_ctx *cc)
 		       	cc->geom.h + 2*cc->bwidth >= sc->work.h)
 		return;
 
-	cc->savegeom = cc->geom;
+	if (pstate == STATE_FLOATING)
+		cc->savegeom = cc->geom;
 	cc->flags &= ~CLIENT_HMAXIMIZED;
 	cc->geom.y = sc->work.y;
-	client_horizmaximize(cc);
+	cc->geom.x = sc->work.x;
+	cc->geom.w = sc->work.w;
+	client_resize(cc, 1);
 	client_ptrwarp(cc);
 
 	mh = cc->geom.h + 2 * cc->bwidth;
@@ -63,7 +69,8 @@ tile_horiz(struct client_ctx *cc)
 		if (ci->flags & CLIENT_HIDDEN ||
 		    ci->flags & CLIENT_IGNORE || (ci == cc))
 			continue;
-		ci->savegeom = ci->geom;
+		if (pstate == STATE_FLOATING)
+			ci->savegeom = ci->geom;
 		ci->bwidth = Conf.bwidth;
 		ci->geom.y = sa->y + mh;
 		ci->geom.x = x;
@@ -85,11 +92,15 @@ tile_vert(struct client_ctx *cc)
 	struct screen_ctx 	*sc = cc->sc;
 	struct geom 		*sa = &sc->work;
 	int 			 i, n, mw, y, h, w;
+	int 			 pstate;
 
 	if (!gc)
 		return;
+
 	i = n = 0;
 
+	pstate = gc->state;
+	gc->state = STATE_TILING;
 	TAILQ_FOREACH(ci, &gc->clients, group_entry) {
 		if (ci->flags & CLIENT_HIDDEN ||
 		    ci->flags & CLIENT_IGNORE || (ci == cc))
@@ -103,10 +114,13 @@ tile_vert(struct client_ctx *cc)
 			cc->geom.w + 2*cc->bwidth >= sc->work.w)
 		return;
 
-	cc->savegeom = cc->geom;
+	if (pstate == STATE_FLOATING)
+		cc->savegeom = cc->geom;
 	cc->flags &= ~CLIENT_VMAXIMIZED;
 	cc->geom.x = sc->work.x;
-	client_vertmaximize(cc);
+	cc->geom.y = sc->work.y;
+	cc->geom.h = sc->work.h;
+	client_resize(cc, 1);
 	client_ptrwarp(cc);
 
 	mw = cc->geom.w + 2 * cc->bwidth;
@@ -117,7 +131,8 @@ tile_vert(struct client_ctx *cc)
 		if (ci->flags & CLIENT_HIDDEN ||
 		    ci->flags & CLIENT_IGNORE || (ci == cc))
 			continue;
-		ci->savegeom = ci->geom;
+		if (pstate == STATE_FLOATING)
+			ci->savegeom = ci->geom;
 		ci->bwidth = Conf.bwidth;
 		ci->geom.y = y;
 		ci->geom.x = sa->x + mw;
@@ -128,5 +143,23 @@ tile_vert(struct client_ctx *cc)
 		y += h;
 		client_resize(ci, 1);
 		i++;
+	}
+}
+
+void
+tile_untile(struct client_ctx *cc)
+{
+	struct client_ctx	*ci;
+	struct group_ctx 	*gc = cc->group;
+
+	if (!gc || gc->state == STATE_FLOATING)
+		return;
+	gc->state = STATE_FLOATING;
+
+	TAILQ_FOREACH(ci, &gc->clients, group_entry) {
+		if (ci->flags & CLIENT_HIDDEN ||
+		    ci->flags & CLIENT_IGNORE)
+			continue;
+		kbfunc_undo(ci, 0);
 	}
 }

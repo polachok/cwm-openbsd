@@ -402,6 +402,8 @@ static struct {
 	    {.i = CWM_TILE_HORIZ } },
 	{ "vtile", kbfunc_tile, KBFLAG_NEEDCLIENT,
 	    {.i = CWM_TILE_VERT } },
+	{ "untile", kbfunc_tile, KBFLAG_NEEDCLIENT,
+	    {.i = CWM_TILE_UNTILE} },
 	{ "undo", kbfunc_undo, KBFLAG_NEEDCLIENT,
 	    {0} },
 };
