@@ -86,13 +86,20 @@ font_make(struct screen_ctx *sc, const char *name)
 {
 	XftFont		*fn = NULL;
 	FcPattern	*pat, *patx;
+	FcValue 	 val;
 	XftResult	 res;
+
+	/* disable antialiasing */
+	val.type = FcTypeBool;
+	val.u.b = FcFalse;
 
 	if ((pat = FcNameParse((const FcChar8*)name)) == NULL)
 		return (NULL);
 
-	if ((patx = XftFontMatch(X_Dpy, sc->which, pat, &res)) != NULL)
+	if ((patx = XftFontMatch(X_Dpy, sc->which, pat, &res)) != NULL) {
+		FcPatternAdd(patx, FC_ANTIALIAS, val, FcFalse);
 		fn = XftFontOpenPattern(X_Dpy, patx);
+	}
 
 	FcPatternDestroy(pat);
 
