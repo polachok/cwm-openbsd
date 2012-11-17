@@ -102,6 +102,7 @@ font_make(struct screen_ctx *sc, const char *name)
 	}
 
 	FcPatternDestroy(pat);
+	FcPatternDestroy(patx);
 
 	return (fn);
 }
