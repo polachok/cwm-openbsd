@@ -85,13 +85,13 @@ union arg {
 };
 
 enum cwmcolor {
+	CWM_COLOR_FG_MENU,
+	CWM_COLOR_BG_MENU,
+	CWM_COLOR_FONT,
 	CWM_COLOR_BORDER_ACTIVE,
 	CWM_COLOR_BORDER_INACTIVE,
 	CWM_COLOR_BORDER_GROUP,
 	CWM_COLOR_BORDER_UNGROUP,
-	CWM_COLOR_FG_MENU,
-	CWM_COLOR_BG_MENU,
-	CWM_COLOR_FONT,
 	CWM_COLOR_MAX
 };
 
@@ -208,13 +208,12 @@ struct screen_ctx {
 	Window			 rootwin;
 	Window			 menuwin;
 	struct color		 color[CWM_COLOR_MAX];
-	GC			 gc;
 	int			 cycling;
 	struct geom		 view; /* viewable area */
 	struct geom		 work; /* workable area, gap-applied */
 	struct gap		 gap;
 	struct cycle_entry_q	 mruq;
-	XftColor		 xftcolor;
+	XftColor		 xftcolor[3];
 	XftDraw			*xftdraw;
 	XftFont			*font;
 	int			 xinerama_no;
@@ -446,7 +445,7 @@ int			 font_descent(struct screen_ctx *);
 void			 font_draw(struct screen_ctx *, const char *, int,
 			     Drawable, int, int);
 u_int			 font_height(struct screen_ctx *);
-void			 font_init(struct screen_ctx *, const char *);
+void			 font_init(struct screen_ctx *, struct color *);
 int			 font_width(struct screen_ctx *, const char *, int);
 XftFont			*font_make(struct screen_ctx *, const char *);
 

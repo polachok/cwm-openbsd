@@ -153,7 +153,6 @@ x_teardown(void)
 	struct screen_ctx	*sc;
 
 	TAILQ_FOREACH(sc, &Screenq, entry)
-		XFreeGC(X_Dpy, sc->gc);
 
 	XCloseDisplay(X_Dpy);
 }
