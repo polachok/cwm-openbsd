@@ -62,18 +62,18 @@ conf_gap(struct conf *c, struct screen_ctx *sc)
 void
 conf_font(struct conf *c, struct screen_ctx *sc)
 {
-	font_init(sc, c->color[CWM_COLOR_FONT].name);
+	font_init(sc, c->color);
 	sc->font = font_make(sc, c->font);
 }
 
 static struct color color_binds[] = {
+	{ "black",	0 }, /* CWM_COLOR_FG_MENU */
+	{ "white",	0 }, /* CWM_COLOR_BG_MENU */
+	{ "black",	0 }, /* CWM_COLOR_FONT */
 	{ "#CCCCCC",	0 }, /* CWM_COLOR_BORDER_ACTIVE */
 	{ "#666666",	0 }, /* CWM_COLOR_BORDER_INACTIVE */
 	{ "blue",	0 }, /* CWM_COLOR_BORDER_GROUP */
 	{ "red",	0 }, /* CWM_COLOR_BORDER_UNGROUP */
-	{ "black",	0 }, /* CWM_COLOR_FG_MENU */
-	{ "white",	0 }, /* CWM_COLOR_BG_MENU */
-	{ "black",	0 }, /* CWM_COLOR_FONT */
 };
 
 void
