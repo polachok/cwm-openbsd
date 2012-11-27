@@ -152,8 +152,6 @@ x_teardown(void)
 {
 	struct screen_ctx	*sc;
 
-	TAILQ_FOREACH(sc, &Screenq, entry)
-
 	XCloseDisplay(X_Dpy);
 }
 
