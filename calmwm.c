@@ -150,8 +150,6 @@ x_setup(void)
 static void
 x_teardown(void)
 {
-	struct screen_ctx	*sc;
-
 	XCloseDisplay(X_Dpy);
 }
 
