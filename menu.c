@@ -477,6 +477,9 @@ menu_handle_move(XEvent *e, struct menu_ctx *mc, struct screen_ctx *sc,
 	mc->prev = mc->entry;
 	mc->entry = menu_calc_entry(sc, mc, e->xbutton.x, e->xbutton.y);
 
+	if (mc->prev == mc->entry)
+		return;
+
 	if (mc->hasprompt)
 		i++;
 
