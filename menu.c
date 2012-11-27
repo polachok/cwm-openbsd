@@ -70,6 +70,8 @@ static struct menu	*menu_handle_release(XEvent *, struct menu_ctx *,
 			     struct screen_ctx *, struct menu_q *);
 static void		 menu_draw(struct screen_ctx *, struct menu_ctx *,
 			     struct menu_q *, struct menu_q *);
+static void 		 menu_draw_entry(struct screen_ctx *, struct menu_ctx *,
+			     struct menu_q *, int, int, int);
 static int		 menu_calc_entry(struct screen_ctx *, struct menu_ctx *,
 			     int, int);
 static int		 menu_keycode(XKeyEvent *, enum ctltype *,
@@ -453,12 +455,13 @@ menu_draw(struct screen_ctx *sc, struct menu_ctx *mc, struct menu_q *menuq,
 		    sc->menuwin, 0, y);
 		n++;
 	}
-#ifdef NOTYET
-	if (mc->hasprompt && n > 1 && (mc->searchstr[0] != '\0'))
-		XftDrawRect(sc->xftdraw, &sc->xftcolor[CWM_COLOR_BG_MENU],
-		    0, font_height(sc), mc->width,
-		    font_height(sc) + font_descent(sc));
+	if (mc->hasprompt && n > 1 && (mc->searchstr[0] != '\0')) {
+		mc->entry = 1;
+		menu_draw_entry(sc, mc, resultq, 1, font_height(sc), 1);
+	}
 
+#ifdef NOTYET
+	/* Why? */
 	if (mc->noresult)
 		XftDrawRect(sc->xftdraw, &sc->xftcolor[CWM_COLOR_BG_MENU],
 		    0, 0, mc->width, font_height(sc));
@@ -466,49 +469,51 @@ menu_draw(struct screen_ctx *sc, struct menu_ctx *mc, struct menu_q *menuq,
 }
 
 static void
+menu_draw_entry(struct screen_ctx *sc, struct menu_ctx *mc,
+    struct menu_q *resultq, int x, int y, int active)
+{
+	struct menu	*mi;
+	char 		*text;
+	int		 color, entry, i = 0;
+
+	entry = menu_calc_entry(sc, mc, x, y);
+
+	if (mc->hasprompt)
+		i = 1;
+
+	TAILQ_FOREACH(mi, resultq, resultentry)
+		if (entry == i++)
+			break;
+
+	if (mi == NULL)
+		return;
+	color = active ? CWM_COLOR_FG_MENU : CWM_COLOR_BG_MENU;
+	text = mi->print[0] != '\0' ?
+		    mi->print : mi->text;
+	XftDrawRect(sc->xftdraw, &sc->xftcolor[color], 0,
+			font_height(sc) * entry, mc->width,
+			font_height(sc) + font_descent(sc));
+	font_draw(sc, text, strlen(text), sc->menuwin,
+			0, font_height(sc) * entry + font_ascent(sc) + 1);
+}
+
+static void
 menu_handle_move(XEvent *e, struct menu_ctx *mc, struct screen_ctx *sc,
     struct menu_q *resultq)
 {
-	int i = 0;
-	struct menu 	*mi, *prev, *cur;
-	char *text;
-
-	prev = cur = NULL;
 	mc->prev = mc->entry;
 	mc->entry = menu_calc_entry(sc, mc, e->xbutton.x, e->xbutton.y);
 
 	if (mc->prev == mc->entry)
 		return;
 
-	if (mc->hasprompt)
-		i++;
-
-	TAILQ_FOREACH(mi, resultq, resultentry) {
-		if (mc->prev == i)
-			prev = mi;
-		if (mc->entry == i)
-			cur = mi;
-		i++;
-	}
-
-	if (prev) {
-		text = prev->print[0] != '\0' ?
-		    prev->print : prev->text;
-		XftDrawRect(sc->xftdraw, &sc->xftcolor[CWM_COLOR_BG_MENU], 0,
-		    font_height(sc) * mc->prev, mc->width,
-		    font_height(sc) + font_descent(sc));
-		font_draw(sc, text, strlen(text), sc->menuwin,
-			       	0, font_height(sc) * mc->prev + font_ascent(sc) + 1);
-	}
-	if (cur) {
-		text = cur->print[0] != '\0' ?
-		    cur->print : cur->text;
+	if (mc->prev != -1)
+		menu_draw_entry(sc, mc, resultq, 1,
+				mc->prev * font_height(sc), 0);
+	if (mc->entry != -1) {
 		(void)xu_ptr_regrab(MENUGRABMASK, Cursor_normal);
-		XftDrawRect(sc->xftdraw, &sc->xftcolor[CWM_COLOR_FG_MENU], 0,
-		    font_height(sc) * mc->entry, mc->width,
-		    font_height(sc) + font_descent(sc));
-		font_draw(sc, text, strlen(text), sc->menuwin,
-			       	0, font_height(sc) * mc->entry + font_ascent(sc) + 1);
+		menu_draw_entry(sc, mc, resultq,
+				e->xbutton.x, e->xbutton.y, 1);
 	} else
 		(void)xu_ptr_regrab(MENUGRABMASK, Cursor_default);
 }
