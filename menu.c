@@ -459,13 +459,6 @@ menu_draw(struct screen_ctx *sc, struct menu_ctx *mc, struct menu_q *menuq,
 		mc->entry = 1;
 		menu_draw_entry(sc, mc, resultq, 1, font_height(sc), 1);
 	}
-
-#ifdef NOTYET
-	/* Why? */
-	if (mc->noresult)
-		XftDrawRect(sc->xftdraw, &sc->xftcolor[CWM_COLOR_MENU_BG],
-		    0, 0, mc->width, font_height(sc));
-#endif
 }
 
 static void
