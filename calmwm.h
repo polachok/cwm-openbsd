@@ -84,10 +84,14 @@ union arg {
 	int	 i;
 };
 
+enum menucolor {
+	CWM_COLOR_MENU_FG,
+	CWM_COLOR_MENU_BG,
+	CWM_COLOR_MENU_FONT,
+	CWM_COLOR_MENU_MAX
+};
+
 enum cwmcolor {
-	CWM_COLOR_FG_MENU,
-	CWM_COLOR_BG_MENU,
-	CWM_COLOR_FONT,
 	CWM_COLOR_BORDER_ACTIVE,
 	CWM_COLOR_BORDER_INACTIVE,
 	CWM_COLOR_BORDER_GROUP,
@@ -213,7 +217,7 @@ struct screen_ctx {
 	struct geom		 work; /* workable area, gap-applied */
 	struct gap		 gap;
 	struct cycle_entry_q	 mruq;
-	XftColor		 xftcolor[3];
+	XftColor		 xftcolor[CWM_COLOR_MENU_MAX];
 	XftDraw			*xftdraw;
 	XftFont			*font;
 	int			 xinerama_no;
@@ -288,6 +292,7 @@ struct conf {
 	int			 snapdist;
 	struct gap		 gap;
 	struct color		 color[CWM_COLOR_MAX];
+	char		 	*menucolor[CWM_COLOR_MENU_MAX];
 	char			 termpath[MAXPATHLEN];
 	char			 lockpath[MAXPATHLEN];
 #define	CONF_FONT			"sans-serif:pixelsize=14:bold"
@@ -445,7 +450,7 @@ int			 font_descent(struct screen_ctx *);
 void			 font_draw(struct screen_ctx *, const char *, int,
 			     Drawable, int, int);
 u_int			 font_height(struct screen_ctx *);
-void			 font_init(struct screen_ctx *, struct color *);
+void			 font_init(struct screen_ctx *, char **);
 int			 font_width(struct screen_ctx *, const char *, int);
 XftFont			*font_make(struct screen_ctx *, const char *);
 

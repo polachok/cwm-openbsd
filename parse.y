@@ -186,16 +186,16 @@ colors		: ACTIVEBORDER STRING {
 			conf->color[CWM_COLOR_BORDER_UNGROUP].name = $2;
 		}
 		| MENUBG STRING {
-			free(conf->color[CWM_COLOR_BG_MENU].name);
-			conf->color[CWM_COLOR_BG_MENU].name = $2;
+			free(conf->menucolor[CWM_COLOR_MENU_BG]);
+			conf->menucolor[CWM_COLOR_MENU_BG] = $2;
 		}
 		| MENUFG STRING {
-			free(conf->color[CWM_COLOR_FG_MENU].name);
-			conf->color[CWM_COLOR_FG_MENU].name = $2;
+			free(conf->menucolor[CWM_COLOR_MENU_FG]);
+			conf->menucolor[CWM_COLOR_MENU_FG] = $2;
 		}
 		| FONTCOLOR STRING {
-			free(conf->color[CWM_COLOR_FONT].name);
-			conf->color[CWM_COLOR_FONT].name = $2;
+			free(conf->menucolor[CWM_COLOR_MENU_FONT]);
+			conf->menucolor[CWM_COLOR_MENU_FONT] = $2;
 		}
 		;
 %%
@@ -574,6 +574,9 @@ parse_config(const char *filename, struct conf *xconf)
 
 		for (i = 0; i < CWM_COLOR_MAX; i++)
 			xconf->color[i].name = conf->color[i].name;
+
+		for (i = 0; i < CWM_COLOR_MENU_MAX; i++)
+			xconf->menucolor[i]= conf->menucolor[i];
 
 		xconf->font = conf->font;
 	}
