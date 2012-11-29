@@ -82,8 +82,8 @@ menu_init(struct screen_ctx *sc)
 {
 	sc->menuwin = XCreateSimpleWindow(X_Dpy, sc->rootwin, 0, 0, 1, 1,
 	    Conf.bwidth,
-	    sc->color[CWM_COLOR_FG_MENU].pixel,
-	    sc->color[CWM_COLOR_BG_MENU].pixel);
+	    sc->xftcolor[CWM_COLOR_MENU_FG].pixel,
+	    sc->xftcolor[CWM_COLOR_MENU_BG].pixel);
 }
 
 struct menu *
@@ -463,7 +463,7 @@ menu_draw(struct screen_ctx *sc, struct menu_ctx *mc, struct menu_q *menuq,
 #ifdef NOTYET
 	/* Why? */
 	if (mc->noresult)
-		XftDrawRect(sc->xftdraw, &sc->xftcolor[CWM_COLOR_BG_MENU],
+		XftDrawRect(sc->xftdraw, &sc->xftcolor[CWM_COLOR_MENU_BG],
 		    0, 0, mc->width, font_height(sc));
 #endif
 }
@@ -487,7 +487,7 @@ menu_draw_entry(struct screen_ctx *sc, struct menu_ctx *mc,
 
 	if (mi == NULL)
 		return;
-	color = active ? CWM_COLOR_FG_MENU : CWM_COLOR_BG_MENU;
+	color = active ? CWM_COLOR_MENU_FG : CWM_COLOR_MENU_BG;
 	text = mi->print[0] != '\0' ?
 		    mi->print : mi->text;
 	XftDrawRect(sc->xftdraw, &sc->xftcolor[color], 0,

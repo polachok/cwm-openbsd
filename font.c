@@ -49,24 +49,20 @@ font_height(struct screen_ctx *sc)
 }
 
 void
-font_init(struct screen_ctx *sc, struct color *color)
+font_init(struct screen_ctx *sc, char **color)
 {
+	int i;
+
 	sc->xftdraw = XftDrawCreate(X_Dpy, sc->rootwin,
 	    DefaultVisual(X_Dpy, sc->which), DefaultColormap(X_Dpy, sc->which));
 	if (sc->xftdraw == NULL)
 		errx(1, "XftDrawCreate");
 
-	if (!XftColorAllocName(X_Dpy, DefaultVisual(X_Dpy, sc->which),
-	    DefaultColormap(X_Dpy, sc->which), color[CWM_COLOR_FG_MENU].name, &sc->xftcolor[CWM_COLOR_FG_MENU]))
-		errx(1, "XftColorAllocName");
-
-	if (!XftColorAllocName(X_Dpy, DefaultVisual(X_Dpy, sc->which),
-	    DefaultColormap(X_Dpy, sc->which), color[CWM_COLOR_BG_MENU].name, &sc->xftcolor[CWM_COLOR_BG_MENU]))
-		errx(1, "XftColorAllocName");
-
-	if (!XftColorAllocName(X_Dpy, DefaultVisual(X_Dpy, sc->which),
-	    DefaultColormap(X_Dpy, sc->which), color[CWM_COLOR_FONT].name, &sc->xftcolor[CWM_COLOR_FONT]))
-		errx(1, "XftColorAllocName");
+	for(i = 0; i < CWM_COLOR_MENU_MAX; i++) {
+		if (!XftColorAllocName(X_Dpy, DefaultVisual(X_Dpy, sc->which),
+			DefaultColormap(X_Dpy, sc->which), color[i], &sc->xftcolor[i]))
+			errx(1, "XftColorAllocName");
+	}
 }
 
 int
@@ -85,7 +81,7 @@ font_draw(struct screen_ctx *sc, const char *text, int len,
     Drawable d, int x, int y)
 {
 	XftDrawChange(sc->xftdraw, d);
-	XftDrawStringUtf8(sc->xftdraw, &sc->xftcolor[CWM_COLOR_FONT], sc->font, x, y,
+	XftDrawStringUtf8(sc->xftdraw, &sc->xftcolor[CWM_COLOR_MENU_FONT], sc->font, x, y,
 	    (const FcChar8*)text, len);
 }
 
