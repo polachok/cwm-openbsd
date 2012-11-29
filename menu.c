@@ -436,7 +436,7 @@ menu_draw(struct screen_ctx *sc, struct menu_ctx *mc, struct menu_q *menuq,
 	    mc->width, mc->height);
 
 	if (mc->hasprompt) {
-		font_draw(sc, mc->dispstr, strlen(mc->dispstr), sc->menuwin,
+		font_draw(sc, mc->dispstr, strlen(mc->dispstr), sc->menuwin, 0,
 		    0, font_ascent(sc));
 		n = 1;
 	} else
@@ -452,7 +452,7 @@ menu_draw(struct screen_ctx *sc, struct menu_ctx *mc, struct menu_q *menuq,
 			break;
 
 		font_draw(sc, text, MIN(strlen(text), MENU_MAXENTRY),
-		    sc->menuwin, 0, y);
+		    sc->menuwin, 0, 0, y);
 		n++;
 	}
 	if (mc->hasprompt && n > 1 && (mc->searchstr[0] != '\0')) {
@@ -493,7 +493,7 @@ menu_draw_entry(struct screen_ctx *sc, struct menu_ctx *mc,
 	XftDrawRect(sc->xftdraw, &sc->xftcolor[color], 0,
 			font_height(sc) * entry, mc->width,
 			font_height(sc) + font_descent(sc));
-	font_draw(sc, text, strlen(text), sc->menuwin,
+	font_draw(sc, text, strlen(text), sc->menuwin, active,
 			0, font_height(sc) * entry + font_ascent(sc) + 1);
 }
 

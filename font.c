@@ -78,10 +78,13 @@ font_width(struct screen_ctx *sc, const char *text, int len)
 
 void
 font_draw(struct screen_ctx *sc, const char *text, int len,
-    Drawable d, int x, int y)
+    Drawable d, int active, int x, int y)
 {
+	int color;
+
+	color = active ? CWM_COLOR_MENU_FONT_SEL : CWM_COLOR_MENU_FONT;
 	XftDrawChange(sc->xftdraw, d);
-	XftDrawStringUtf8(sc->xftdraw, &sc->xftcolor[CWM_COLOR_MENU_FONT], sc->font, x, y,
+	XftDrawStringUtf8(sc->xftdraw, &sc->xftcolor[color], sc->font, x, y,
 	    (const FcChar8*)text, len);
 }
 

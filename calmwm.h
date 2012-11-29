@@ -88,6 +88,7 @@ enum menucolor {
 	CWM_COLOR_MENU_FG,
 	CWM_COLOR_MENU_BG,
 	CWM_COLOR_MENU_FONT,
+	CWM_COLOR_MENU_FONT_SEL,
 	CWM_COLOR_MENU_MAX
 };
 
@@ -448,7 +449,7 @@ void			 conf_ungrab(struct conf *, struct keybinding *);
 int			 font_ascent(struct screen_ctx *);
 int			 font_descent(struct screen_ctx *);
 void			 font_draw(struct screen_ctx *, const char *, int,
-			     Drawable, int, int);
+			     Drawable, int, int, int);
 u_int			 font_height(struct screen_ctx *);
 void			 font_init(struct screen_ctx *, char **);
 int			 font_width(struct screen_ctx *, const char *, int);
