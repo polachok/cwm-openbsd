@@ -71,7 +71,7 @@ static struct menu	*menu_handle_release(XEvent *, struct menu_ctx *,
 static void		 menu_draw(struct screen_ctx *, struct menu_ctx *,
 			     struct menu_q *, struct menu_q *);
 static void 		 menu_draw_entry(struct screen_ctx *, struct menu_ctx *,
-			     struct menu_q *, int, int, int);
+			     struct menu_q *, int, int);
 static int		 menu_calc_entry(struct screen_ctx *, struct menu_ctx *,
 			     int, int);
 static int		 menu_keycode(XKeyEvent *, enum ctltype *,
@@ -457,19 +457,17 @@ menu_draw(struct screen_ctx *sc, struct menu_ctx *mc, struct menu_q *menuq,
 	}
 	if (mc->hasprompt && n > 1 && (mc->searchstr[0] != '\0')) {
 		mc->entry = 1;
-		menu_draw_entry(sc, mc, resultq, 1, font_height(sc), 1);
+		menu_draw_entry(sc, mc, resultq, mc->entry, 1);
 	}
 }
 
 static void
 menu_draw_entry(struct screen_ctx *sc, struct menu_ctx *mc,
-    struct menu_q *resultq, int x, int y, int active)
+    struct menu_q *resultq, int entry, int active)
 {
 	struct menu	*mi;
 	char 		*text;
-	int		 color, entry, i = 0;
-
-	entry = menu_calc_entry(sc, mc, x, y);
+	int		 color, i = 0;
 
 	if (mc->hasprompt)
 		i = 1;
@@ -501,12 +499,10 @@ menu_handle_move(XEvent *e, struct menu_ctx *mc, struct screen_ctx *sc,
 		return;
 
 	if (mc->prev != -1)
-		menu_draw_entry(sc, mc, resultq, 1,
-				mc->prev * font_height(sc), 0);
+		menu_draw_entry(sc, mc, resultq, mc->prev, 0);
 	if (mc->entry != -1) {
 		(void)xu_ptr_regrab(MENUGRABMASK, Cursor_normal);
-		menu_draw_entry(sc, mc, resultq,
-				e->xbutton.x, e->xbutton.y, 1);
+		menu_draw_entry(sc, mc, resultq, mc->entry, 1);
 	} else
 		(void)xu_ptr_regrab(MENUGRABMASK, Cursor_default);
 }
