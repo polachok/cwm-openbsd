@@ -378,7 +378,7 @@ menu_draw(struct screen_ctx *sc, struct menu_ctx *mc, struct menu_q *menuq,
 		(void)snprintf(mc->dispstr, sizeof(mc->dispstr), "%s%s%s",
 		    mc->promptstr, mc->searchstr, PROMPT_ECHAR);
 		mc->width = font_width(sc, mc->dispstr, strlen(mc->dispstr));
-		mc->height = font_height(sc) + 1;
+		mc->height = font_height(sc);
 		mc->num = 1;
 	}
 
@@ -542,7 +542,7 @@ menu_calc_entry(struct screen_ctx *sc, struct menu_ctx *mc, int x, int y)
 	entry = y / font_height(sc);
 
 	/* in bounds? */
-	if (x <= 0 || x > mc->width || y <= 0 ||
+	if (x < 0 || x > mc->width || y < 0 ||
 	    y > font_height(sc) * mc->num || entry < 0 || entry >= mc->num)
 		entry = -1;
 
