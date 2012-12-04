@@ -15,7 +15,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * $OpenBSD: calmwm.h,v 1.159 2012/11/08 20:18:19 okan Exp $
+ * $OpenBSD: calmwm.h,v 1.163 2012/11/29 03:54:46 okan Exp $
  */
 
 #ifndef _CALMWM_H_
@@ -369,6 +369,7 @@ void			 search_print_client(struct menu *, int);
 
 XineramaScreenInfo	*screen_find_xinerama(struct screen_ctx *, int, int);
 struct screen_ctx	*screen_fromroot(Window);
+void			 screen_init(struct screen_ctx *, u_int);
 void			 screen_update_geometry(struct screen_ctx *);
 void			 screen_updatestackingorder(struct screen_ctx *);
 
@@ -446,9 +447,9 @@ int			 font_descent(struct screen_ctx *);
 void			 font_draw(struct screen_ctx *, const char *, int,
 			     Drawable, int, int);
 u_int			 font_height(struct screen_ctx *);
-void			 font_init(struct screen_ctx *, const char *);
+void			 font_init(struct screen_ctx *, const char *,
+			     const char *);
 int			 font_width(struct screen_ctx *, const char *, int);
-XftFont			*font_make(struct screen_ctx *, const char *);
 
 void			 xev_loop(void);
 
@@ -492,6 +493,9 @@ void			 u_spawn(char *);
 void			*xcalloc(size_t, size_t);
 void			*xmalloc(size_t);
 char			*xstrdup(const char *);
+int			 xasprintf(char **, const char *, ...)
+			    __attribute__((__format__ (printf, 2, 3)))
+			    __attribute__((__nonnull__ (2)));
 
 /* Externs */
 extern Display				*X_Dpy;
@@ -506,7 +510,7 @@ extern struct screen_ctx_q		 Screenq;
 extern struct client_ctx_q		 Clientq;
 extern struct conf			 Conf;
 
-extern int				 HasXinerama, HasRandr, Randr_ev;
+extern int				 HasRandr, Randr_ev;
 
 enum {
 	WM_STATE,

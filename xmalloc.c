@@ -15,7 +15,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * $OpenBSD: xmalloc.c,v 1.9 2012/11/09 03:52:02 okan Exp $
+ * $OpenBSD: xmalloc.c,v 1.11 2012/11/28 14:32:44 okan Exp $
  */
 
 #include <sys/param.h>
@@ -23,6 +23,7 @@
 
 #include <err.h>
 #include <errno.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,6 +36,8 @@ xmalloc(size_t siz)
 {
 	void	*p;
 
+	if (siz == 0)
+		errx(1, "xmalloc: zero size");
 	if ((p = malloc(siz)) == NULL)
 		err(1, "malloc");
 
@@ -46,6 +49,10 @@ xcalloc(size_t no, size_t siz)
 {
 	void	*p;
 
+	if (siz == 0 || no == 0)
+		errx(1, "xcalloc: zero size");
+	if (SIZE_MAX / no < siz)
+		errx(1, "xcalloc: no * siz > SIZE_MAX");
 	if ((p = calloc(no, siz)) == NULL)
 		err(1, "calloc");
 
@@ -61,4 +68,20 @@ xstrdup(const char *str)
 		err(1, "strdup");
 
 	return (p);
+}
+
+int
+xasprintf(char **ret, const char *fmt, ...)
+{
+	va_list	 ap;
+	int	 i;
+
+	va_start(ap, fmt);
+	i = vasprintf(ret, fmt, ap);
+	va_end(ap);
+
+	if (i < 0 || *ret == NULL)
+		err(1, "asprintf");
+
+	return (i);
 }
