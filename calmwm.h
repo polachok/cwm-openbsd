@@ -491,6 +491,7 @@ void			 xu_ewmh_net_desktop_names(struct screen_ctx *, char *, int);
 
 void			 xu_ewmh_net_wm_desktop(struct client_ctx *);
 
+void 			 xu_xorcolor(XRenderColor, XRenderColor, XRenderColor *);
 
 void			 u_exec(char *);
 void			 u_spawn(char *);

@@ -69,7 +69,7 @@ static char *menu_color_binds[CWM_COLOR_MENU_MAX] = {
 	"black",  /* CWM_COLOR_MENU_FG */
 	"white",  /* CWM_COLOR_MENU_BG */
 	"black",  /* CWM_COLOR_MENU_FONT */
-	"white",  /* CWM_COLOR_MENU_FONT_SEL */
+	"",  	  /* CWM_COLOR_MENU_FONT_SEL */
 };
 
 static struct color color_binds[CWM_COLOR_MAX] = {
