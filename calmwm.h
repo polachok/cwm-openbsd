@@ -15,7 +15,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * $OpenBSD: calmwm.h,v 1.163 2012/11/29 03:54:46 okan Exp $
+ * $OpenBSD: calmwm.h,v 1.174 2012/12/18 00:14:41 okan Exp $
  */
 
 #ifndef _CALMWM_H_
@@ -84,14 +84,19 @@ union arg {
 	int	 i;
 };
 
+enum menucolor {
+	CWM_COLOR_MENU_FG,
+	CWM_COLOR_MENU_BG,
+	CWM_COLOR_MENU_FONT,
+	CWM_COLOR_MENU_FONT_SEL,
+	CWM_COLOR_MENU_MAX
+};
+
 enum cwmcolor {
 	CWM_COLOR_BORDER_ACTIVE,
 	CWM_COLOR_BORDER_INACTIVE,
 	CWM_COLOR_BORDER_GROUP,
 	CWM_COLOR_BORDER_UNGROUP,
-	CWM_COLOR_FG_MENU,
-	CWM_COLOR_BG_MENU,
-	CWM_COLOR_FONT,
 	CWM_COLOR_MAX
 };
 
@@ -127,7 +132,7 @@ struct client_ctx {
 	struct screen_ctx	*sc;
 	Window			 win;
 	XSizeHints		*size;
-	Colormap		 cmap;
+	Colormap		 colormap;
 	u_int			 bwidth; /* border width */
 	struct geom		 geom, savegeom;
 	struct {
@@ -154,16 +159,16 @@ struct client_ctx {
 #define CLIENT_VMAXIMIZED		0x0004
 #define CLIENT_HMAXIMIZED		0x0008
 #define CLIENT_FREEZE			0x0010
+#define CLIENT_GROUP			0x0020
+#define CLIENT_UNGROUP			0x0040
 
+#define CLIENT_HIGHLIGHT		(CLIENT_GROUP | CLIENT_UNGROUP)
 #define CLIENT_MAXFLAGS			(CLIENT_VMAXIMIZED | CLIENT_HMAXIMIZED)
 #define CLIENT_MAXIMIZED		(CLIENT_VMAXIMIZED | CLIENT_HMAXIMIZED)
 	int			 flags;
 	int			 state;
 	int			 active;
 	int			 stackingorder;
-#define CLIENT_HIGHLIGHT_GROUP		0x0001
-#define CLIENT_HIGHLIGHT_UNGROUP	0x0002
-	int			 highlight;
 	struct winname_q	 nameq;
 #define CLIENT_MAXNAMEQLEN		5
 	int			 nameqlen;
@@ -205,18 +210,19 @@ TAILQ_HEAD(autogroupwin_q, autogroupwin);
 struct screen_ctx {
 	TAILQ_ENTRY(screen_ctx)	 entry;
 	u_int			 which;
+	Visual			*visual;
+	Colormap		 colormap;
 	Window			 rootwin;
 	Window			 menuwin;
 	struct color		 color[CWM_COLOR_MAX];
-	GC			 gc;
 	int			 cycling;
 	struct geom		 view; /* viewable area */
 	struct geom		 work; /* workable area, gap-applied */
 	struct gap		 gap;
 	struct cycle_entry_q	 mruq;
-	XftColor		 xftcolor;
+	XftColor		 xftcolor[CWM_COLOR_MENU_MAX];
 	XftDraw			*xftdraw;
-	XftFont			*font;
+	XftFont			*xftfont;
 	int			 xinerama_no;
 	XineramaScreenInfo	*xinerama;
 #define CALMWM_NGROUPS		 9
@@ -289,8 +295,10 @@ struct conf {
 	int			 snapdist;
 	struct gap		 gap;
 	struct color		 color[CWM_COLOR_MAX];
+	char		 	*menucolor[CWM_COLOR_MENU_MAX];
 	char			 termpath[MAXPATHLEN];
 	char			 lockpath[MAXPATHLEN];
+	char			 known_hosts[MAXPATHLEN];
 #define	CONF_FONT			"sans-serif:pixelsize=14:bold"
 	char			*font;
 };
@@ -312,7 +320,8 @@ __dead void		 usage(void);
 void			 client_applysizehints(struct client_ctx *);
 struct client_ctx	*client_current(void);
 void			 client_cycle(struct screen_ctx *, int);
-void			 client_cycle_leave(struct screen_ctx *, struct client_ctx *);
+void			 client_cycle_leave(struct screen_ctx *,
+			     struct client_ctx *);
 void			 client_delete(struct client_ctx *);
 void			 client_draw_border(struct client_ctx *);
 struct client_ctx	*client_find(Window);
@@ -325,7 +334,6 @@ void			 client_lower(struct client_ctx *);
 void			 client_map(struct client_ctx *);
 void			 client_maximize(struct client_ctx *);
 void			 client_move(struct client_ctx *);
-void			 client_mtf(struct client_ctx *);
 struct client_ctx	*client_new(Window, struct screen_ctx *, int);
 void			 client_ptrsave(struct client_ctx *);
 void			 client_ptrwarp(struct client_ctx *);
@@ -359,8 +367,8 @@ void			 search_match_client(struct menu_q *, struct menu_q *,
 			     char *);
 void			 search_match_exec(struct menu_q *, struct menu_q *,
 			     char *);
-void			 search_match_exec_path(struct menu_q *, struct menu_q *,
-			     char *);
+void			 search_match_exec_path(struct menu_q *,
+			     struct menu_q *, char *);
 void			 search_match_path_any(struct menu_q *, struct menu_q *,
 			     char *);
 void			 search_match_text(struct menu_q *, struct menu_q *,
@@ -425,6 +433,7 @@ struct menu  		*menu_filter(struct screen_ctx *, struct menu_q *,
 			     void (*)(struct menu_q *, struct menu_q *, char *),
 			     void (*)(struct menu *, int));
 void			 menu_init(struct screen_ctx *);
+void			 menuq_clear(struct menu_q *);
 
 int			 parse_config(const char *, struct conf *);
 
@@ -439,16 +448,15 @@ void			 conf_grab(struct conf *, struct keybinding *);
 void			 conf_grab_mouse(struct client_ctx *);
 void			 conf_init(struct conf *);
 void			 conf_mousebind(struct conf *, char *, char *);
-void			 conf_setup(struct conf *, const char *);
 void			 conf_ungrab(struct conf *, struct keybinding *);
 
 int			 font_ascent(struct screen_ctx *);
 int			 font_descent(struct screen_ctx *);
 void			 font_draw(struct screen_ctx *, const char *, int,
-			     Drawable, int, int);
+			     Drawable, int, int, int);
 u_int			 font_height(struct screen_ctx *);
 void			 font_init(struct screen_ctx *, const char *,
-			     const char *);
+			     const char **);
 int			 font_width(struct screen_ctx *, const char *, int);
 
 void			 xev_loop(void);
@@ -470,6 +478,8 @@ void			 xu_ptr_setpos(Window, int, int);
 void			 xu_ptr_ungrab(void);
 void			 xu_sendmsg(Window, Atom, long);
 void			 xu_setstate(struct client_ctx *, int);
+void 			 xu_xorcolor(XRenderColor, XRenderColor,
+			     XRenderColor *);
 
 void			 xu_ewmh_net_supported(struct screen_ctx *);
 void			 xu_ewmh_net_supported_wm_check(struct screen_ctx *);
@@ -482,10 +492,10 @@ void			 xu_ewmh_net_wm_number_of_desktops(struct screen_ctx *);
 void			 xu_ewmh_net_showing_desktop(struct screen_ctx *);
 void			 xu_ewmh_net_virtual_roots(struct screen_ctx *);
 void			 xu_ewmh_net_current_desktop(struct screen_ctx *, long);
-void			 xu_ewmh_net_desktop_names(struct screen_ctx *, char *, int);
+void			 xu_ewmh_net_desktop_names(struct screen_ctx *, char *,
+			     int);
 
 void			 xu_ewmh_net_wm_desktop(struct client_ctx *);
-
 
 void			 u_exec(char *);
 void			 u_spawn(char *);
@@ -509,6 +519,7 @@ extern Cursor				 Cursor_resize;
 extern struct screen_ctx_q		 Screenq;
 extern struct client_ctx_q		 Clientq;
 extern struct conf			 Conf;
+extern char				*homedir;
 
 extern int				 HasRandr, Randr_ev;
 
