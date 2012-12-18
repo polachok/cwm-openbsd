@@ -690,6 +690,13 @@ client_placecalc(struct client_ctx *cc)
 		int			 xmax, ymax;
 
 		xu_ptr_getpos(sc->rootwin, &xmouse, &ymouse);
+
+		if (Conf.random) {
+			srand(time(NULL));
+			xmouse += (random()%Conf.random - Conf.random/2);
+			ymouse += (random()%Conf.random - Conf.random/2);
+		}
+
 		info = screen_find_xinerama(sc, xmouse, ymouse);
 		if (info) {
 			xorig = info->x_org;

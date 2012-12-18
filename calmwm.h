@@ -293,6 +293,7 @@ struct conf {
 	int			 mamount;
 #define	CONF_SNAPDIST			0
 	int			 snapdist;
+	int 			 random;
 	struct gap		 gap;
 	struct color		 color[CWM_COLOR_MAX];
 	char		 	*menucolor[CWM_COLOR_MENU_MAX];
