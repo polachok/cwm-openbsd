@@ -131,6 +131,7 @@ client_new(Window win, struct screen_ctx *sc, int mapped)
 
 	client_gethints(cc);
 	client_update(cc);
+	xu_ewmh_restore_net_wm_state(cc);
 
 	if (mapped)
 		group_autogroup(cc);
@@ -295,6 +296,7 @@ client_maximize(struct client_ctx *cc)
 
 resize:
 	client_resize(cc, 0);
+	xu_ewmh_set_net_wm_state(cc);
 }
 
 void
@@ -336,6 +338,7 @@ client_vmaximize(struct client_ctx *cc)
 
 resize:
 	client_resize(cc, 0);
+	xu_ewmh_set_net_wm_state(cc);
 }
 
 void
@@ -377,6 +380,7 @@ client_hmaximize(struct client_ctx *cc)
 
 resize:
 	client_resize(cc, 0);
+	xu_ewmh_set_net_wm_state(cc);
 }
 
 void
@@ -385,6 +389,7 @@ client_resize(struct client_ctx *cc, int reset)
 	if (reset) {
 		cc->flags &= ~CLIENT_MAXIMIZED;
 		cc->bwidth = Conf.bwidth;
+		xu_ewmh_set_net_wm_state(cc);
 	}
 
 	client_draw_border(cc);
