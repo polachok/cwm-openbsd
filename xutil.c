@@ -257,6 +257,7 @@ struct atom_ctx ewmh[EWMH_NITEMS] = {
 	{"_NET_WM_STATE", 		None},
 	{"_NET_WM_STATE_MAXIMIZED_VERT",None},
 	{"_NET_WM_STATE_MAXIMIZED_HORZ",None},
+	{"_NET_CLOSE_WINDOW", 		None},
 };
 
 void
