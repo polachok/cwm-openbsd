@@ -82,8 +82,6 @@
 #define CWM_TILE_VERT 		0x0002
 #define CWM_TILE_UNTILE		0x0004
 
-#define KBTOGROUP(X) ((X) - 1)
-
 union arg {
 	char	*c;
 	int	 i;
@@ -233,7 +231,7 @@ struct screen_ctx {
 	XftFont			*xftfont;
 	int			 xinerama_no;
 	XineramaScreenInfo	*xinerama;
-#define CALMWM_NGROUPS		 9
+#define CALMWM_NGROUPS		 10
 	struct group_ctx	 groups[CALMWM_NGROUPS];
 	struct group_ctx_q	 groupq;
 	int			 group_hideall;
@@ -511,6 +509,11 @@ void			 xu_ewmh_net_desktop_names(struct screen_ctx *, char *,
 			     int);
 
 void			 xu_ewmh_net_wm_desktop(struct client_ctx *);
+Atom 			*xu_ewmh_get_net_wm_state(struct client_ctx *, int *);
+void 			 xu_ewmh_handle_net_wm_state_msg(struct client_ctx *,
+				 int, Atom , Atom);
+void 			 xu_ewmh_set_net_wm_state(struct client_ctx *);
+void 			 xu_ewmh_restore_net_wm_state(struct client_ctx *);
 
 void			 u_exec(char *);
 void			 u_spawn(char *);
@@ -562,7 +565,17 @@ enum {
 	_NET_WORKAREA,
 	_NET_WM_NAME,
 	_NET_WM_DESKTOP,
+	_NET_WM_STATE,
+#define _NET_WM_STATES_NITEMS 	2
+	_NET_WM_STATE_MAXIMIZED_VERT,
+	_NET_WM_STATE_MAXIMIZED_HORZ,
+	_NET_CLOSE_WINDOW,
 	EWMH_NITEMS
+};
+enum {
+	_NET_WM_STATE_REMOVE,
+	_NET_WM_STATE_ADD,
+	_NET_WM_STATE_TOGGLE
 };
 struct atom_ctx {
 	char	*name;

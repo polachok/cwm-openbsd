@@ -343,7 +343,7 @@ xev_handle_clientmessage(XEvent *ee)
 {
 	XClientMessageEvent	*e = &ee->xclient;
 	Atom			 xa_wm_change_state;
-	struct client_ctx	*cc;
+	struct client_ctx	*cc, *old_cc;
 
 	xa_wm_change_state = XInternAtom(X_Dpy, "WM_CHANGE_STATE", False);
 
@@ -353,6 +353,16 @@ xev_handle_clientmessage(XEvent *ee)
 	if (e->message_type == xa_wm_change_state && e->format == 32 &&
 	    e->data.l[0] == IconicState)
 		client_hide(cc);
+
+	if (e->message_type == ewmh[_NET_CLOSE_WINDOW].atom && e->format == 32)
+		client_send_delete(cc);
+
+	if (e->message_type == ewmh[_NET_ACTIVE_WINDOW].atom && e->format == 32) {
+		old_cc = client_current();
+		if (old_cc)
+			client_ptrsave(old_cc);
+		client_ptrwarp(cc);
+	}
 }
 
 static void
