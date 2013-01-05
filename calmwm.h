@@ -74,8 +74,17 @@
 #define CWM_MENU_DUMMY		0x0001
 #define CWM_MENU_FILE		0x0002
 
+<<<<<<< HEAD
 #define ARG_CHAR		0x0001
 #define ARG_INT			0x0002
+
+/* tile */
+#define CWM_TILE_HORIZ 		0x0001
+#define CWM_TILE_VERT 		0x0002
+#define CWM_TILE_UNTILE		0x0004
+
+#define KBTOGROUP(X) ((X) - 1)
+
 union arg {
 	char	*c;
 	int	 i;
@@ -188,6 +197,9 @@ struct group_ctx {
 	int			 hidden;
 	int			 nhidden;
 	int			 highstack;
+#define STATE_FLOATING           0
+#define STATE_TILING             1
+	int 			 state;
 };
 TAILQ_HEAD(group_ctx_q, group_ctx);
 
@@ -408,6 +420,8 @@ void			 kbfunc_quit_wm(struct client_ctx *, union arg *);
 void			 kbfunc_restart(struct client_ctx *, union arg *);
 void			 kbfunc_ssh(struct client_ctx *, union arg *);
 void			 kbfunc_term(struct client_ctx *, union arg *);
+void 			 kbfunc_tile(struct client_ctx *, union arg *);
+void 			 kbfunc_undo(struct client_ctx *, union arg *);
 
 void			 mousefunc_menu_cmd(struct client_ctx *, void *);
 void			 mousefunc_menu_group(struct client_ctx *, void *);
@@ -450,6 +464,10 @@ u_int			 font_height(struct screen_ctx *);
 void			 font_init(struct screen_ctx *, const char *,
 			     const char **);
 int			 font_width(struct screen_ctx *, const char *, int);
+
+void 			 tile_horiz(struct client_ctx *cc);
+void 			 tile_vert(struct client_ctx *cc);
+void 			 tile_untile(struct client_ctx *cc);
 
 void			 xev_loop(void);
 
