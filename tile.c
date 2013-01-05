@@ -119,7 +119,7 @@ tile_vert(struct client_ctx *cc)
 	cc->flags &= ~CLIENT_VMAXIMIZED;
 	cc->geom.x = sc->work.x;
 	cc->geom.y = sc->work.y;
-	cc->geom.h = sc->work.h;
+	cc->geom.h = sc->work.h - 2 * cc->bwidth;
 	client_resize(cc, 1);
 	client_ptrwarp(cc);
 
