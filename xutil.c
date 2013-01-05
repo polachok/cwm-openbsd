@@ -449,10 +449,10 @@ xu_ewmh_handle_net_wm_state_msg(struct client_ctx *cc, int action, Atom first,
 	} handlers[] = {
 		{ _NET_WM_STATE_MAXIMIZED_VERT,
 			CLIENT_VMAXIMIZED,
-			client_vertmaximize },
+			client_vmaximize },
 		{ _NET_WM_STATE_MAXIMIZED_HORZ,
 			CLIENT_HMAXIMIZED,
-			client_horizmaximize },
+			client_hmaximize },
 	};
 
 	for (i = 0; i < nitems(handlers); i++) {
@@ -483,9 +483,9 @@ xu_ewmh_restore_net_wm_state(struct client_ctx *cc)
 	atoms = xu_ewmh_get_net_wm_state(cc, &n);
 	for(i = 0; i < n; i++) {
 		if (atoms[i] == ewmh[_NET_WM_STATE_MAXIMIZED_HORZ].atom)
-			client_horizmaximize(cc);
+			client_hmaximize(cc);
 		if (atoms[i] == ewmh[_NET_WM_STATE_MAXIMIZED_VERT].atom)
-			client_vertmaximize(cc);
+			client_vmaximize(cc);
 	}
 	free(atoms);
 }
