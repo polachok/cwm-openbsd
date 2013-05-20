@@ -15,7 +15,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * $OpenBSD: conf.c,v 1.121 2013/01/08 15:16:05 okan Exp $
+ * $OpenBSD: conf.c,v 1.129 2013/05/20 20:21:04 okan Exp $
  */
 
 #include <sys/param.h>
@@ -39,7 +39,6 @@ void
 conf_cmd_add(struct conf *c, char *image, char *label)
 {
 	/* "term" and "lock" have special meanings. */
-
 	if (strcmp(label, "term") == 0)
 		(void)strlcpy(c->termpath, image, sizeof(c->termpath));
 	else if (strcmp(label, "lock") == 0)
@@ -53,38 +52,93 @@ conf_cmd_add(struct conf *c, char *image, char *label)
 }
 
 void
-conf_gap(struct conf *c, struct screen_ctx *sc)
+conf_autogroup(struct conf *c, int no, char *val)
 {
-	sc->gap = c->gap;
+	struct autogroupwin	*aw;
+	char			*p;
+
+	aw = xcalloc(1, sizeof(*aw));
+
+	if ((p = strchr(val, ',')) == NULL) {
+		aw->name = NULL;
+		aw->class = xstrdup(val);
+	} else {
+		*(p++) = '\0';
+		aw->name = xstrdup(val);
+		aw->class = xstrdup(p);
+	}
+	aw->num = no;
+
+	TAILQ_INSERT_TAIL(&c->autogroupq, aw, entry);
 }
 
 void
-conf_font(struct conf *c, struct screen_ctx *sc)
+conf_ignore(struct conf *c, char *val)
 {
-	font_init(sc, c->font, (const char **)c->menucolor);
+	struct winmatch	*wm;
+
+	wm = xcalloc(1, sizeof(*wm));
+
+	(void)strlcpy(wm->title, val, sizeof(wm->title));
+
+	TAILQ_INSERT_TAIL(&c->ignoreq, wm, entry);
 }
 
-static char *menu_color_binds[CWM_COLOR_MENU_MAX] = {
+static char *color_binds[CWM_COLOR_MAX] = {
+	"#CCCCCC",	/* CWM_COLOR_BORDER_ACTIVE */
+	"#666666",	/* CWM_COLOR_BORDER_INACTIVE */
+	"blue",		/* CWM_COLOR_BORDER_GROUP */
+	"red",		/* CWM_COLOR_BORDER_UNGROUP */
 	"black",	/* CWM_COLOR_MENU_FG */
 	"white",	/* CWM_COLOR_MENU_BG */
 	"black",	/* CWM_COLOR_MENU_FONT */
 	"",		/* CWM_COLOR_MENU_FONT_SEL */
 };
 
-static char *color_binds[CWM_COLOR_BORDER_MAX] = {
-	"#CCCCCC",	/* CWM_COLOR_BORDER_ACTIVE */
-	"#666666",	/* CWM_COLOR_BORDER_INACTIVE */
-	"blue",		/* CWM_COLOR_BORDER_GROUP */
-	"red",		/* CWM_COLOR_BORDER_UNGROUP */
-};
-
 void
-conf_color(struct conf *c, struct screen_ctx *sc)
+conf_screen(struct screen_ctx *sc)
 {
-	int	 i;
+	int		 i;
+	XftColor	 xc;
 
-	for (i = 0; i < CWM_COLOR_BORDER_MAX; i++)
-		sc->color[i] = xu_getcolor(sc, c->color[i]);
+	sc->gap = Conf.gap;
+
+	sc->xftfont = XftFontOpenName(X_Dpy, sc->which, Conf.font);
+	if (sc->xftfont == NULL)
+		errx(1, "XftFontOpenName");
+
+	for (i = 0; i < CWM_COLOR_MAX; i++) {
+		if (*Conf.color[i] == '\0')
+			break;
+		if (XftColorAllocName(X_Dpy, sc->visual, sc->colormap,
+		    Conf.color[i], &xc)) {
+			sc->xftcolor[i] = xc;
+			XftColorFree(X_Dpy, sc->visual, sc->colormap, &xc);
+		} else {
+			warnx("XftColorAllocName: '%s'", Conf.color[i]);
+			XftColorAllocName(X_Dpy, sc->visual, sc->colormap,
+			    color_binds[i], &sc->xftcolor[i]);
+		}
+	}
+	if (i == CWM_COLOR_MAX)
+		return;
+
+	xu_xorcolor(sc->xftcolor[CWM_COLOR_MENU_BG],
+		    sc->xftcolor[CWM_COLOR_MENU_FG], &xc);
+	xu_xorcolor(sc->xftcolor[CWM_COLOR_MENU_FONT], xc, &xc);
+	if (!XftColorAllocValue(X_Dpy, sc->visual, sc->colormap,
+	    &xc.color, &sc->xftcolor[CWM_COLOR_MENU_FONT_SEL]))
+		warnx("XftColorAllocValue: '%s'", Conf.color[i]);
+
+	sc->menuwin = XCreateSimpleWindow(X_Dpy, sc->rootwin, 0, 0, 1, 1,
+	    Conf.bwidth,
+	    sc->xftcolor[CWM_COLOR_MENU_FG].pixel,
+	    sc->xftcolor[CWM_COLOR_MENU_BG].pixel);
+
+	sc->xftdraw = XftDrawCreate(X_Dpy, sc->menuwin,
+	    sc->visual, sc->colormap);
+	if (sc->xftdraw == NULL)
+		errx(1, "XftDrawCreate");
 }
 
 static struct {
@@ -163,7 +217,7 @@ m_binds[] = {
 void
 conf_init(struct conf *c)
 {
-	int	i;
+	u_int	i;
 
 	bzero(c, sizeof(*c));
 
@@ -185,9 +239,6 @@ conf_init(struct conf *c)
 
 	for (i = 0; i < nitems(color_binds); i++)
 		c->color[i] = xstrdup(color_binds[i]);
-
-	for (i = 0; i < nitems(menu_color_binds); i++)
-		c->menucolor[i] = xstrdup(menu_color_binds[i]);
 
 	/* Default term/lock */
 	(void)strlcpy(c->termpath, "xterm", sizeof(c->termpath));
@@ -236,7 +287,7 @@ conf_clear(struct conf *c)
 		free(mb);
 	}
 
-	for (i = 0; i < CWM_COLOR_BORDER_MAX; i++)
+	for (i = 0; i < CWM_COLOR_MAX; i++)
 		free(c->color[i]);
 
 	free(c->font);
@@ -427,7 +478,7 @@ conf_bindname(struct conf *c, char *name, char *binding)
 {
 	struct keybinding	*current_binding;
 	char			*substring, *tmp;
-	int			 i;
+	u_int			 i;
 
 	current_binding = xcalloc(1, sizeof(*current_binding));
 
@@ -532,7 +583,7 @@ conf_mousebind(struct conf *c, char *name, char *binding)
 	struct mousebinding	*current_binding;
 	char			*substring, *tmp;
 	const char		*errstr;
-	int			 i;
+	u_int			 i;
 
 	current_binding = xcalloc(1, sizeof(*current_binding));
 
@@ -595,7 +646,7 @@ void
 conf_grab_mouse(struct client_ctx *cc)
 {
 	struct mousebinding	*mb;
-	int			 button;
+	u_int			 button;
 
 	TAILQ_FOREACH(mb, &Conf.mousebindingq, entry) {
 		if (mb->context != MOUSEBIND_CTX_WIN)

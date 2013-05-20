@@ -1,4 +1,4 @@
-/*	$OpenBSD: parse.y,v 1.39 2013/01/04 16:27:58 okan Exp $ */
+/*	$OpenBSD: parse.y,v 1.42 2013/05/19 23:09:59 okan Exp $ */
 
 /*
  * Copyright (c) 2002, 2003, 2004 Henning Brauer <henning@openbsd.org>
@@ -117,12 +117,24 @@ main		: FONTNAME STRING		{
 				conf->flags |= CONF_STICKY_GROUPS;
 		}
 		| BORDERWIDTH NUMBER {
+			if ($2 < 0) {
+				yyerror("invalid borderwidth: %d", $2);
+				YYERROR;
+			}
 			conf->bwidth = $2;
 		}
 		| MOVEAMOUNT NUMBER {
+			if ($2 < 0) {
+				yyerror("invalid movemount: %d", $2);
+				YYERROR;
+			}
 			conf->mamount = $2;
 		}
 		| SNAPDIST NUMBER {
+			if ($2 < 0) {
+				yyerror("invalid snapdist: %d", $2);
+				YYERROR;
+			}
 			conf->snapdist = $2;
 		}
 		| COMMAND STRING string		{
@@ -133,20 +145,14 @@ main		: FONTNAME STRING		{
 		| AUTOGROUP NUMBER STRING	{
 			if ($2 < 0 || $2 > 9) {
 				free($3);
-				yyerror("autogroup number out of range: %d", $2);
+				yyerror("invalid autogroup: %d", $2);
 				YYERROR;
 			}
-
-			group_make_autogroup(conf, $3, $2);
+			conf_autogroup(conf, $2, $3);
 			free($3);
 		}
 		| IGNORE STRING {
-			struct winmatch	*wm;
-
-			wm = xcalloc(1, sizeof(*wm));
-			(void)strlcpy(wm->title, $2, sizeof(wm->title));
-			TAILQ_INSERT_TAIL(&conf->ignoreq, wm, entry);
-
+			conf_ignore(conf, $2);
 			free($2);
 		}
 		| BIND STRING string		{
@@ -155,6 +161,11 @@ main		: FONTNAME STRING		{
 			free($3);
 		}
 		| GAP NUMBER NUMBER NUMBER NUMBER {
+			if ($2 < 0 || $3 < 0 || $4 < 0 || $5 < 0) {
+				yyerror("invalid gap: %d %d %d %d",
+				    $2, $3, $4, $5);
+				YYERROR;
+			}
 			conf->gap.top = $2;
 			conf->gap.bottom = $3;
 			conf->gap.left = $4;
@@ -187,20 +198,20 @@ colors		: ACTIVEBORDER STRING {
 			conf->color[CWM_COLOR_BORDER_UNGROUP] = $2;
 		}
 		| MENUBG STRING {
-			free(conf->menucolor[CWM_COLOR_MENU_BG]);
-			conf->menucolor[CWM_COLOR_MENU_BG] = $2;
+			free(conf->color[CWM_COLOR_MENU_BG]);
+			conf->color[CWM_COLOR_MENU_BG] = $2;
 		}
 		| MENUFG STRING {
-			free(conf->menucolor[CWM_COLOR_MENU_FG]);
-			conf->menucolor[CWM_COLOR_MENU_FG] = $2;
+			free(conf->color[CWM_COLOR_MENU_FG]);
+			conf->color[CWM_COLOR_MENU_FG] = $2;
 		}
 		| FONTCOLOR STRING {
-			free(conf->menucolor[CWM_COLOR_MENU_FONT]);
-			conf->menucolor[CWM_COLOR_MENU_FONT] = $2;
+			free(conf->color[CWM_COLOR_MENU_FONT]);
+			conf->color[CWM_COLOR_MENU_FONT] = $2;
 		}
 		| FONTSELCOLOR STRING {
-			free(conf->menucolor[CWM_COLOR_MENU_FONT_SEL]);
-			conf->menucolor[CWM_COLOR_MENU_FONT_SEL] = $2;
+			free(conf->color[CWM_COLOR_MENU_FONT_SEL]);
+			conf->color[CWM_COLOR_MENU_FONT_SEL] = $2;
 		}
 		;
 %%
@@ -578,11 +589,8 @@ parse_config(const char *filename, struct conf *xconf)
 		(void)strlcpy(xconf->lockpath, conf->lockpath,
 		    sizeof(xconf->lockpath));
 
-		for (i = 0; i < CWM_COLOR_BORDER_MAX; i++)
+		for (i = 0; i < CWM_COLOR_MAX; i++)
 			xconf->color[i] = conf->color[i];
-
-		for (i = 0; i < CWM_COLOR_MENU_MAX; i++)
-			xconf->menucolor[i] = conf->menucolor[i];
 
 		xconf->font = conf->font;
 	}

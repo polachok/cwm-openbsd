@@ -16,7 +16,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  *
- * $OpenBSD: group.c,v 1.70 2013/01/13 13:55:12 okan Exp $
+ * $OpenBSD: group.c,v 1.76 2013/05/06 16:03:11 okan Exp $
  */
 
 #include <sys/param.h>
@@ -98,8 +98,7 @@ group_show(struct screen_ctx *sc, struct group_ctx *gc)
 {
 	struct client_ctx	*cc;
 	Window			*winlist;
-	u_int			 i;
-	int			 lastempty = -1;
+	int			 i, lastempty = -1;
 
 	gc->highstack = 0;
 	TAILQ_FOREACH(cc, &gc->clients, group_entry) {
@@ -142,7 +141,7 @@ group_init(struct screen_ctx *sc)
 
 	TAILQ_INIT(&sc->groupq);
 	sc->group_hideall = 0;
-	/* 
+	/*
 	 * See if any group names have already been set and update the
 	 * property with ours if they'll have changed.
 	 */
@@ -161,27 +160,6 @@ group_init(struct screen_ctx *sc)
 	xu_ewmh_net_virtual_roots(sc);
 
 	group_setactive(sc, 1);
-}
-
-void
-group_make_autogroup(struct conf *conf, char *val, int no)
-{
-	struct autogroupwin	*aw;
-	char			*p;
-
-	aw = xcalloc(1, sizeof(*aw));
-
-	if ((p = strchr(val, ',')) == NULL) {
-		aw->name = NULL;
-		aw->class = xstrdup(val);
-	} else {
-		*(p++) = '\0';
-		aw->name = xstrdup(val);
-		aw->class = xstrdup(p);
-	}
-	aw->num = no;
-
-	TAILQ_INSERT_TAIL(&conf->autogroupq, aw, entry);
 }
 
 static void
@@ -330,17 +308,6 @@ group_cycle(struct screen_ctx *sc, int flags)
 		group_setactive(sc, showgroup->shortcut);
 }
 
-/* called when a client is deleted */
-void
-group_client_delete(struct client_ctx *cc)
-{
-	if (cc->group == NULL)
-		return;
-
-	TAILQ_REMOVE(&cc->group->clients, cc, group_entry);
-	cc->group = NULL; /* he he */
-}
-
 void
 group_menu(XButtonEvent *e)
 {
@@ -351,6 +318,7 @@ group_menu(XButtonEvent *e)
 	int			 i;
 
 	sc = screen_fromroot(e->root);
+
 	TAILQ_INIT(&menuq);
 
 	for (i = 0; i < CALMWM_NGROUPS; i++) {
@@ -374,15 +342,11 @@ group_menu(XButtonEvent *e)
 		return;
 
 	mi = menu_filter(sc, &menuq, NULL, NULL, 0, NULL, NULL);
+	if (mi != NULL && mi->ctx != NULL) {
+		gc = (struct group_ctx *)mi->ctx;
+		(gc->hidden) ? group_show(sc, gc) : group_hide(sc, gc);
+	}
 
-	if (mi == NULL || mi->ctx == NULL)
-		goto cleanup;
-
-	gc = (struct group_ctx *)mi->ctx;
-
-	(gc->hidden) ? group_show(sc, gc) : group_hide(sc, gc);
-
-cleanup:
 	menuq_clear(&menuq);
 }
 
